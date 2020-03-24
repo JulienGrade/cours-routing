@@ -12,10 +12,10 @@
  * qu'à des fins d'exemples.
  * 
  * Elle possède 3 pages distinctes :
- * - /index.php (ou /index.php?page=list) : permet d'afficher la liste des tâches contenue dans le fichier data.php (voir le fichier pages/list.php)
- * - /index.php?page=show&id=100 : permet d'afficher la tâche dont l'identifiant est 100 en détails (voir le fichier pages/show.php)
- * - /index.php?page=create (en GET) : permet d'afficher le formulaire de création (voir le fichier pages/create.php)
- * - /index.php?page=create (en POST) : permet de traiter le formulaire de création (toujours dans pages/create.php)
+ * - /index.php (ou /index.php?page=list) : permet d'afficher la liste des tâches contenue dans le fichier data.php (voir le fichier pages/list.html.php)
+ * - /index.php?page=show&id=100 : permet d'afficher la tâche dont l'identifiant est 100 en détails (voir le fichier pages/show.html.php)
+ * - /index.php?page=create (en GET) : permet d'afficher le formulaire de création (voir le fichier pages/create.html.php)
+ * - /index.php?page=create (en POST) : permet de traiter le formulaire de création (toujours dans pages/create.html.php)
  * 
  * CREER DES ROUTES PERSONNALISEES (ET JOLIES ?) :
  * ----------------
@@ -34,30 +34,59 @@ use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use App\Controller\HelloController;
+use App\Controller\TaskController;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$listRoute = new Route('/');
-$createRoute = new Route('/create');
-$showRoute = new Route('/show');
+$listRoute = new Route('/', [
+    'controller' => 'App\Controller\TaskController@index'
+]);
+$createRoute = new Route(
+    '/create',  // Url
+    ['controller'=> 'App\Controller\TaskController@create'],  // defaults
+    [],   // requirements
+    [],   // options
+    'localhost',  // host
+    ['http'],   // schemes
+    ['GET', 'POST']);  // methods
+$showRoute = new Route('/show/{id<\d+>?100}', [
+    'controller'=> 'App\Controller\Taskcontroller@show'
+]);
+$helloRoute = new Route(
+    '/hello/{name}',
+    ['name' => 'World', 'controller' => 'App\Controller\HelloController@sayHello']
+);
 
 $collection = new RouteCollection();
 $collection->add('list', $listRoute);
 $collection->add('create', $createRoute);
 $collection->add('show', $showRoute);
+$collection->add('hello', $helloRoute);
 
-$matcher = new UrlMatcher($collection, new RequestContext());
+
+$matcher = new UrlMatcher($collection, new RequestContext('', $_SERVER['REQUEST_METHOD']));
+$generator = new UrlGenerator($collection, new RequestContext());
 
 $pathInfo = $_SERVER['PATH_INFO'] ?? '/';
 
 try{
-    $resultat = $matcher->match($pathInfo);
-    var_dump($resultat);
+    $currentRoute = $matcher->match($pathInfo);
 
-    $page = $resultat['_route'];
-    require_once "pages/$page.php";
+    $controller = $currentRoute['controller'];
+
+    $currentRoute['generator'] = $generator;
+
+    $className = substr($controller,0, strpos($controller, '@'));
+
+    $methodName = substr($controller, strpos($controller, '@') + 1);
+
+    $instance = new $className();
+
+    call_user_func([$instance, $methodName], $currentRoute);
 }catch(ResourceNotFoundException $e) {
-    require 'pages/404.php';
+    require 'pages/404.html.php';
     return;
 }
 
@@ -82,7 +111,7 @@ try{
 // Si la page demandée n'existe pas (n'est pas dans le tableau $availablePages)
 // On affiche la page 404
 //if (!in_array($page, $availablePages)) {
-//    require 'pages/404.php';
+//    require 'pages/404.html.php';
 //    return;
 //}
 
@@ -100,9 +129,9 @@ try{
  * ❌ AUTRE PROBLEME DE TAILLE ICI : LE COUPLAGE DE L'URL ET DES NOMS DE FICHIERS
  * ------------
  * Le fichier que l'on va inclure porte le même nom que le paramètre $_GET['page']. C'est à dire que si on appelle /index.php?page=create
- * c'est le fichier pages/create.php qui va être inclus.
+ * c'est le fichier pages/create.html.php qui va être inclus.
  * 
  * La conséquence, c'est que si demain je décide que le formulaire de création devrait se trouver sur /index.php?page=new il faudra que je
- * renomme forcément le fichier pages/create.php en pages/new.php et inversement (l'enfer)
+ * renomme forcément le fichier pages/create.html.php en pages/new.php et inversement (l'enfer)
  */
 //require_once "pages/$page.php";
