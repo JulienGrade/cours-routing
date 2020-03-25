@@ -5,11 +5,17 @@ namespace App\Controller;
 
 
 use Exception;
+use Symfony\Component\Routing\Annotation\Route;
 
 class TaskController
 {
     // Lister, montrer, ajouter
 
+    /**
+     * @Route("/", name="list")
+     * @param array $currentRoute
+     *
+     */
     public function index(array $currentRoute)
     {
         // On récupère les tâches
@@ -19,6 +25,11 @@ class TaskController
         require __DIR__.'/../../pages/list.html.php';
     }
 
+    /**
+     * @Route("/show/{id}", name="show", requirements={"id": "\d+"})
+     * @param array $currentRoute
+     * @throws Exception
+     */
     public function show(array $currentRoute)
     {
         // On appelle la liste des tâches
@@ -44,6 +55,10 @@ class TaskController
         require __DIR__.'/../../pages/show.html.php';
     }
 
+    /**
+     * @Route("/create", name="create", host="localhost", schemes={"http", "https"}, methods={"GET", "POST"})
+     * @param array $currentRoute
+     */
     public function create(array $currentRoute)
     {
         // Si la requête arrive en POST, c'est qu'on a soumis le formulaire :

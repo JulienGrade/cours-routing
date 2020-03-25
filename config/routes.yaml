@@ -2,28 +2,24 @@ hello:
   path: /hello/{name}
   defaults:
     name: World
-    controller:
-      App\Controller\HelloController@sayHello
+  controller:
+    App\Controller\HelloController@sayHello
 
 list:
   path: /
-  defaults:
-    controller:
+  controller:
       App\Controller\TaskController@index
 
 create:
   path: /create
-  defaults:
-    controller:
-      App\Controller\TaskController@create
+  controller:
+    App\Controller\TaskController@create
   host: localhost
   schemes: [http, https]
   methods: [GET, POST]
 
 show:
-  path: /show/{id}
-  defaults:
-    id: 100
-    controller: App\Controller\TaskController@show
+  path: "/show/{id}"
+  controller: App\Controller\TaskController@show
   requirements:
     id: \id+
