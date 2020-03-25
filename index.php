@@ -29,41 +29,18 @@
  * 
  */
 
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
-use App\Controller\HelloController;
-use App\Controller\TaskController;
+use Symfony\Component\Routing\Loader\YamlFileLoader;
+use Symfony\Component\Config\FileLocator;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$listRoute = new Route('/', [
-    'controller' => 'App\Controller\TaskController@index'
-]);
-$createRoute = new Route(
-    '/create',  // Url
-    ['controller'=> 'App\Controller\TaskController@create'],  // defaults
-    [],   // requirements
-    [],   // options
-    'localhost',  // host
-    ['http'],   // schemes
-    ['GET', 'POST']);  // methods
-$showRoute = new Route('/show/{id<\d+>?100}', [
-    'controller'=> 'App\Controller\Taskcontroller@show'
-]);
-$helloRoute = new Route(
-    '/hello/{name}',
-    ['name' => 'World', 'controller' => 'App\Controller\HelloController@sayHello']
-);
+$loader = new YamlFileLoader(new FileLocator(__DIR__.'/config'));
 
-$collection = new RouteCollection();
-$collection->add('list', $listRoute);
-$collection->add('create', $createRoute);
-$collection->add('show', $showRoute);
-$collection->add('hello', $helloRoute);
+$collection = $loader->load('routes.yaml');
 
 
 $matcher = new UrlMatcher($collection, new RequestContext('', $_SERVER['REQUEST_METHOD']));
